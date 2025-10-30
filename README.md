@@ -16,11 +16,41 @@ A production-ready Google Apps Script library for integrating Supabase (REST/Pos
 
 ---
 
+## Repository layout (for reference)
+
+```
+supabase-appscript-client/
+├── README.md                      # this file (plaintext)
+├── examples/
+│   ├── ExampleCRUD.gs             # CRUD usage examples
+│   ├── ExampleRPC.gs              # RPC usage examples
+│   └── ExampleRawSQL.gs           # Raw SQL via RPC examples
+├── tests/
+│   ├── test_basic.gs              # basic CRUD tests
+│   └── test_error_handling.gs     # error handling tests
+├── .gitignore
+└── LICENSE
+```
+
+---
+
 ## 🚀 Getting Started
 
-### 1. Add to Apps Script Library
+### 1. Add to Apps Script via Library
 
-Library ID: 10TGg6EEQ4K894duUiKGGYp-aVcgct5n1gJSeFiXUGL-QkyqzVDSpovMZ
+Add via Apps Script Libraries using the following Library ID:
+
+```
+10TGg6EEQ4K894duUiKGGYp-aVcgct5n1gJSeFiXUGL-QkyqzVDSpovMZ
+```
+
+**Steps**
+1. Open your Apps Script project.
+2. Open the left-side menu `Libraries` or go to `Project settings` → `Libraries`.
+3. Paste the Library ID above and add the library.
+4. Choose the latest version and save.
+
+Reference: https://developers.google.com/apps-script/guides/libraries
 
 ### 2. Initialize Client
 
