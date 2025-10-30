@@ -1,242 +1,272 @@
-# Supabase Apps Script Library
+# ⚡ Supabase Apps Script Client Library
 
-A production-ready Google Apps Script library for integrating Supabase (REST/PostgREST) with full CRUD, RPC, raw SQL via functions, multi-schema support, and structured error handling.
-
----
-
-## ✅ Features
-
-- **Full CRUD operations** using Supabase REST API
-- **Raw SQL support** via RPC function (safe approach)
-- **Multi-schema access** through Accept-Profile and Content-Profile headers
-- **TypeScript-like structured output** (`{ data, error, status, statusText }`)
-- **Secure authentication** using anon or publishable keys only
-- **Error handling** with Supabase error codes and unified response
-- **RLS Policy ready** — respects Supabase Row-Level Security
+A lightweight, server-side Google Apps Script library for interacting with a Supabase backend.  
+It provides a simple client interface to perform **CRUD (Create, Read, Update, Delete)** operations, call **RPC (Postgres functions)**, and execute **Raw SQL** queries.
 
 ---
 
-## Repository layout (for reference)
+## 📖 Description
 
-```
-supabase-appscript-client/
-├── README.md                      # this file (plaintext)
-├── examples/
-│   ├── ExampleCRUD.gs             # CRUD usage examples
-│   ├── ExampleRPC.gs              # RPC usage examples
-│   └── ExampleRawSQL.gs           # Raw SQL via RPC examples
-├── tests/
-│   ├── test_basic.gs              # basic CRUD tests
-│   └── test_error_handling.gs     # error handling tests
-├── .gitignore
-└── LICENSE
-```
+This project provides a simple wrapper for the **Supabase REST API**, specifically tailored for the **Google Apps Script (UrlFetchApp)** environment.
+
+It enables server-side interactions between Google Workspace products (like **Sheets**, **Docs**, and **Forms**) and a Supabase database.  
+Designed for use with your **Supabase service_role key**, which bypasses Row Level Security (RLS) — ideal for:
+
+- Building internal administrative tools  
+- Syncing data from Google Sheets to Supabase  
+- Triggering backend logic from Workspace events  
+- Automating workflows without a separate server  
 
 ---
 
-## 🚀 Getting Started
+## ✨ Features
 
-### 1. Add to Apps Script via Library
-
-Add via Apps Script Libraries using the following Library ID:
-
-```
-10TGg6EEQ4K894duUiKGGYp-aVcgct5n1gJSeFiXUGL-QkyqzVDSpovMZ
-```
-
-**Steps**
-1. Open your Apps Script project.
-2. Open the left-side menu `Libraries` or go to `Project settings` → `Libraries`.
-3. Paste the Library ID above and add the library.
-4. Choose the latest version and save.
-
-Reference: https://developers.google.com/apps-script/guides/libraries
-
-### 2. Initialize Client
-
-```javascript
-const SUPABASE_URL = 'https://<project>.supabase.co';
-const SUPABASE_KEY = PropertiesService.getScriptProperties().getProperty('SUPABASE_ANON');
-const sb = new SupabaseGS(SUPABASE_URL, SUPABASE_KEY, { schema: 'public' });
-```
-
-### 3. Example CRUD Operations
-
-#### SELECT
-```javascript
-const res = sb.select('users', '*', { filters: 'id=eq.1' });
-if (res.error) Logger.log(res.error);
-else Logger.log(res.data);
-```
-
-#### INSERT
-```javascript
-const res = sb.insert('profiles', { id: 'uuid', full_name: 'Mayur' });
-```
-
-#### UPDATE
-```javascript
-const res = sb.update('profiles', { full_name: 'Mayur Updated' }, 'id=eq.123');
-```
-
-#### DELETE
-```javascript
-const res = sb.delete('profiles', 'id=eq.123');
-```
+- **Simple CRUD Methods** – clean functions for select, insert, update, and delete  
+- **Full PostgREST Support** – filtering, ordering, and selecting data  
+- **RPC (Remote Procedure Calls)** – call custom Postgres functions  
+- **Raw SQL Execution** – securely execute SQL queries via RPC  
+- **Service Role Authentication** – secure, server-side usage  
+- **Standardized Responses** – consistent `{ success, data, error }` structure  
 
 ---
 
-## ⚙️ RPC Functions (Postgres Functions)
+## 🔧 Installation
 
-Use Supabase RPC to execute Postgres functions securely.
+This project is designed to be used as a **Google Apps Script library**.
 
-```javascript
-const rpcRes = sb.rpc('increment_counter', { step: 5 });
-```
-
-### Raw SQL via RPC Wrapper
-
-Supabase does **not** expose direct SQL execution. Use a safe RPC wrapper:
-
-#### Example SQL RPC Function (Postgres)
-```sql
-create or replace function api.execute_sql(sql text)
-returns json as $$
-  execute sql;
-$$ language plpgsql security definer;
-```
-
-#### Apps Script Usage
-```javascript
-const sql = 'SELECT * FROM profiles WHERE active = true;';
-const res = sb.executeRaw(sql);
-```
-
-⚠️ **Warning:** Exposing `execute_sql` to anon users is unsafe. Restrict with RLS or use a service key only on trusted servers.
+### Prerequisites
+- Google Account with Apps Script access  
+- Supabase project (get Project URL + `service_role` key from  
+  **Dashboard → Project Settings → API**)  
 
 ---
 
-## 🧩 Multi-Schema Support
+### Step 1: Add the Library to Your Project
 
-You can access non-`public` schemas using headers:
-
-```javascript
-const sbPrivate = new SupabaseGS(SUPABASE_URL, SUPABASE_KEY, { schema: 'analytics' });
-const res = sbPrivate.select('user_stats', '*');
-```
-
-Ensure the schema is **exposed** in your Supabase project and the anon role has **USAGE** permissions.
-
-```sql
-grant usage on schema analytics to anon;
-```
+1. Open your project (e.g., script linked to a Sheet)  
+2. In sidebar → click **+ Libraries**  
+3. Paste this **Library ID**
+  ```
+  10TGg6EEQ4K894duUiKGGYp-aVcgct5n1gJSeFiXUGL-QkyqzVDSpovMZ
+  ```  
+4. Set Identifier to **SupabaseGS** (case-sensitive)  
+5. Choose latest version → click **Add**  
 
 ---
 
-## 🧱 Structured Response Format
+## ⚙️ Configuration
 
-Each method returns a normalized object:
+Store credentials using **Apps Script’s PropertiesService** —  
+**never** hardcode secrets.
 
-```javascript
-{
-  data: <JSON>,
-  error: { message, code, hint } | null,
-  status: <number>,
-  statusText: <string>,
-  raw: <original response>
+1. Open **Project Settings (⚙️)** → scroll to **Script Properties**  
+2. Add:
+
+| Property Name     | Value Example |
+|-------------------|----------------|
+| SUPABASE_URL      | `https://your-project-id.supabase.co` |
+| SUPABASE_KEY      | `your-service-role-secret-key` |
+
+---
+
+## 🚀 Usage
+
+All methods return:
+
+```js
+{ success: boolean, data: (object|array|null), error: (object|null) }
+```
+
+### Initialize the Client
+
+```js
+/**
+ * Gets a new Supabase client instance.
+ */
+function getSupabaseClient() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const SUPABASE_URL = scriptProperties.getProperty('SUPABASE_URL');
+  const SUPABASE_KEY = scriptProperties.getProperty('SUPABASE_KEY');
+
+  if (!SUPABASE_URL || !SUPABASE_KEY)
+    throw new Error("Supabase URL or Key not found in Script Properties.");
+
+  return Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
+// Example usage
+function testMyConnection() {
+  const client = getSupabaseClient();
+  const { success, data, error } = client.select('my_table', { select: 'id', limit: 1 });
+
+  if (success) Logger.log('Data: ' + JSON.stringify(data));
+  else Logger.log('Error: ' + JSON.stringify(error));
 }
 ```
 
-Example:
-```javascript
-const res = sb.select('tasks');
-if (res.error) Logger.log(res.error.message);
-else Logger.log(res.data);
+---
+
+### ➡️ select(tableName, queryParams)
+
+Fetch data using PostgREST filters.
+
+```js
+function getActiveUsers() {
+  const client = getSupabaseClient();
+  const params = {
+    select: 'id,email',
+    status: 'eq.active',
+    order: 'created_at.desc',
+    limit: 10
+  };
+
+  const { success, data, error } = client.select('profiles', params);
+  if (success) Logger.log(data);
+  else Logger.log(error);
+}
 ```
 
 ---
 
-## 🔒 Security Notes
+### ➡️ insert(tableName, data, [options])
 
-- Never expose **service_role** keys in Apps Script or client code.
-- Use **anon** or **publishable** keys only.
-- Always enable **RLS** policies on your tables.
-- Consider using **Edge Functions** for privileged logic.
+Insert one or more records.
 
----
+```js
+function addUser() {
+  const client = getSupabaseClient();
+  const newUser = { email: 'test.user@example.com', username: 'testuser' };
+  const { success, data } = client.insert('profiles', newUser);
 
-## ⚠️ Limitations
-
-- Apps Script cannot open WebSocket connections → no real-time subscriptions.
-- Raw SQL must go through a secure RPC function.
-- File uploads must use Supabase Storage REST API directly.
-
----
-
-## 🧠 Advanced Features
-
-### Upsert Example
-```javascript
-const res = sb.insert('profiles', { id: 'uuid', full_name: 'Mayur' }, { upsert: true, onConflict: 'id' });
+  if (success) Logger.log('Created user: ' + data[0].id);
+}
 ```
 
-### Pagination
-```javascript
-const res = sb.select('posts', '*', { filters: 'order=created_at.desc&limit=10' });
-```
+**Upsert Example**
 
-### Custom Schema per Request
-```javascript
-const res = sb.select('metrics', '*', { schema: 'analytics' });
+```js
+function upsertUser() {
+  const client = getSupabaseClient();
+  const userData = { id: 'uuid123', username: 'new_username' };
+  const options = { upsert: true, onConflict: 'id' };
+  const { data } = client.insert('profiles', userData, options);
+  Logger.log(data);
+}
 ```
 
 ---
 
-## 🧾 Error Handling
+### ➡️ update(tableName, data, queryParams)
 
-Use `.parseError()` to normalize Supabase errors:
+Update rows matching filters.
 
-```javascript
-const res = sb.insert('users', {});
-const err = sb.parseError(res);
-if (err) Logger.log(`Error ${err.code}: ${err.message}`);
+```js
+function deactivateUser() {
+  const client = getSupabaseClient();
+  const updates = { status: 'inactive' };
+  const filter = { email: 'eq.test.user@example.com' };
+
+  const { success, data } = client.update('profiles', updates, filter);
+  if (success) Logger.log(data);
+}
 ```
 
-Typical error codes:
-| Code | Meaning |
-|------|----------|
-| 23505 | Unique constraint violation |
-| 23503 | Foreign key violation |
-| PGRST301 | Schema not accessible |
-| 404 | Table or route not found |
-
 ---
 
-## 🧰 Apps Script Best Practices
+### ➡️ delete(tableName, queryParams)
 
-1. Store API keys in Script or User Properties:
-```javascript
-PropertiesService.getScriptProperties().setProperty('SUPABASE_ANON', '<anon-key>');
+Delete rows matching filters.
+
+```js
+function deleteUser() {
+  const client = getSupabaseClient();
+  const filter = { id: 'eq.123' };
+
+  const { success, data, error } = client.delete('profiles', filter);
+  if (success) Logger.log('Deleted: ' + JSON.stringify(data));
+  else Logger.log(error.message);
+}
 ```
-2. Log errors, not raw responses.
-3. Use batch operations carefully to avoid rate limits.
-4. Prefer lightweight select queries (`limit`, `order`).
 
 ---
 
-## 📚 References
+### 📞 rpc(functionName, args)
 
-- [Supabase REST API (PostgREST)](https://supabase.com/docs/guides/api)
-- [Supabase RPC Functions](https://supabase.com/docs/guides/functions)
-- [Row Level Security Policies](https://supabase.com/docs/guides/auth/row-level-security)
-- [Google Apps Script UrlFetchApp](https://developers.google.com/apps-script/reference/url-fetch/url-fetch-app)
+Call custom Postgres functions.
+
+```js
+function countAllUsers() {
+  const client = getSupabaseClient();
+  const { success, data, error } = client.rpc('get_user_count', {});
+
+  if (success) Logger.log('Total users: ' + data);
+  else Logger.log(error);
+}
+```
 
 ---
 
-## 🧩 License
-MIT License — use freely with credit.
+## 🐘 Raw SQL (run_raw_sql)
+
+Supabase REST API doesn’t support direct SQL.  
+Instead, create a Postgres RPC function.
+
+### 1️⃣ Create Function in Supabase
+
+```sql
+CREATE OR REPLACE FUNCTION run_raw_sql(query text)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  result json;
+BEGIN
+  EXECUTE 'SELECT json_agg(t) FROM (' || query || ') t' INTO result;
+  IF result IS NULL THEN RETURN '[]'::json; END IF;
+  RETURN result;
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN json_build_object('error', 'true', 'message', SQLERRM, 'sqlstate', SQLSTATE);
+END;
+$$;
+```
+
+### 2️⃣ Call from Apps Script
+
+```js
+function runCustomQuery() {
+  const client = getSupabaseClient();
+  const myQuery = "SELECT email, status FROM profiles WHERE status = 'active' LIMIT 5";
+  const { success, data, error } = client.rpc('run_raw_sql', { query: myQuery });
+
+  if (success) {
+    if (data.error)
+      Logger.log(`SQL Error: ${data.message} (State: ${data.sqlstate})`);
+    else
+      Logger.log(data);
+  } else {
+    Logger.log(`RPC Error: ${error.message}`);
+  }
+}
+```
+---
+
+## 📜 License
+
+Distributed under the **MIT License**.
 
 ---
 
-## 📦 Version
-**v1.0.0** — Stable Production Release
+## 📧 Contact
+
+**Maintainer:** [Mayur Jadhav] – [mayurgj1978@gmail.com]  
+**Project Link:** [https://github.com/mayurgj/supabase-appscript-client](https://github.com/mayurgj/supabase-appscript-client)
+
+---
+
+## 🙏 Acknowledgments
+
+- [Supabase](https://supabase.com)  
+- [Google Apps Script](https://developers.google.com/apps-script)  
+- [PostgREST](https://postgrest.org)
